@@ -14,21 +14,27 @@
 `redis-server --version`
 
 ## 安装 
-注意:请根据你的`Redis`版本
+注意:请根据你的`Redis`版本引入相对应的包
+
+    | Redis版本 | set ex支持 | 引入版本    |
+    | --------- | -----------|------------|
+    | <2.8      | 不支持     | 1.*         |
+    | >=2.8     | 支持       |2.*|1.*均可  |
+
 执行 `composer require lysice/hyperf-redis-lock`
 
 ## 使用
 首先需要在程序内初始化你需要的`redis`
 ```
 /**
-     * @var RedisLock
-     */
-    protected $redis;
+ * @var RedisLock
+ */
+protected $redis;
 
-    public function __construct(RedisFactory $redisFactory)
-    {
-        $this->redis = $redisFactory->get('default');
-    }
+public function __construct(RedisFactory $redisFactory)
+{
+    $this->redis = $redisFactory->get('default');
+}
 ```
 
 - - 非阻塞式锁 该方法在尝试获取锁之后直接返回结果。
@@ -36,44 +42,43 @@
     - 获取锁失败时 默认返回false。您也可以指定可选参数 $finally 该参数为一个闭包 当获取锁失败时 若指定该闭包 则直接返回该闭包的结果。
 ```
 public function lock(ResponseInterface $response)
-    {
-        // 初始化RedisLock 参数:redis实例 锁名称 超时时间
-        $lock = new RedisLock($this->redis, 'lock', 20);
-        // 非阻塞式获取锁
-        $res = $lock->get(function () {
-            sleep(10);
-            return [123];
-        }, function () {
-            return [456];
-        });
-        return $response->json($res);
-    }
+{
+    // 初始化RedisLock 参数:redis实例 锁名称 超时时间
+    $lock = new RedisLock($this->redis, 'lock', 20);
+    // 非阻塞式获取锁
+    $res = $lock->get(function () {
+        sleep(10);
+        return [123];
+    }, function () { // 若获取锁失败 则返回 [456]
+        return [456];
+    });
+    return $response->json($res);
+}
 ```
 - 阻塞式锁 该方法首先尝试获取锁，若获取失败 则每隔250毫秒获取一次 直到超时(等待时间超出本程序内锁的过期时间 则判定为超时)。如果锁获取成功 则执行闭包函数返回结果。
 注意 若超时 则程序会抛出`LockTimeoutException`超时异常。应用程序内需要自己捕获该异常以便处理超时情况的返回结果。
 例子:
 ```
 /**
-     * @return \Psr\Http\Message\ResponseInterface
-     */
-    public function lockA(ResponseInterface $response)
-    {
-        try {
-            // 初始化RedisLock 参数:redis实例 锁名称 超时时间
-            $lock = new RedisLock($this->redis, 'lock', 4);
-            // 阻塞式
-            $res = $lock->block(4, function () {
-                return [456];
-            });
-            return $response->json(['res' => $res]);
-        // 捕获超时异常 超时处理
-        } catch (LockTimeoutException $exception) {
-            var_dump('lockA lock check timeout');
-            return $response->json(['res' => false, 'message' => '超时']);
-        }
+ * @return \Psr\Http\Message\ResponseInterface
+ */
+public function lockA(ResponseInterface $response)
+{
+    try {
+        // 初始化RedisLock 参数:redis实例 锁名称 超时时间
+        $lock = new RedisLock($this->redis, 'lock', 4);
+        // 阻塞式
+        $res = $lock->block(4, function () {
+            return [456];
+        });
+        return $response->json(['res' => $res]);
+    // 捕获超时异常 超时处理
+    } catch (LockTimeoutException $exception) {
+        var_dump('lockA lock check timeout');
+        return $response->json(['res' => false, 'message' => '超时']);
     }
+}
 ```
-
 
 ## 最后
 

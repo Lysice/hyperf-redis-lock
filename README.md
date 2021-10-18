@@ -33,17 +33,34 @@ init the `redis` object
 ```
 
 - non-block lock
-we try to acquire the lock then return the result directly.If acquire the lock, execute the Closure and return the Closure's result. or return false; 
+- - 非阻塞式锁 该方法在尝试获取锁之后直接返回结果。
+    - 若获取到锁则执行闭包后返回结果。
+    - 获取锁失败时 默认返回false。您也可以指定可选参数 $finally 该参数为一个闭包 当获取锁失败时 若指定该闭包 则直接返回该闭包的结果。
+we try to acquire the lock then return the result directly.If acquire the lock, execute the Closure and return the Closure's result. or return false;
 ```
 public function lock(ResponseInterface $response)
-    {
-        $lock = new RedisLock($this->redis, 'lock', 20);
-        $res = $lock->get(function () {
-            sleep(10);
-            return [123];
-        });
-        return $response->json($res);
-    }
+{
+    $lock = new RedisLock($this->redis, 'lock', 20);
+    $res = $lock->get(function () {
+        sleep(10);
+        return [123];
+    });
+    return $response->json($res);
+}
+```
+you also can specify a parameter to this function like below, so you can get the custom result when you get lock failed.
+```
+public function lock(ResponseInterface $response)
+{
+    $lock = new RedisLock($this->redis, 'lock', 20);
+    $res = $lock->get(function () {
+        sleep(10);
+        return [123];
+    }, function () { // when get lock failed return [456].
+        return [456];
+    });
+    return $response->json($res);
+}
 ```
 - blocking lock
 we try acquire the lock first.
