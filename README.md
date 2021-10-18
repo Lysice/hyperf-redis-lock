@@ -1,4 +1,5 @@
 # hyperf-redis-lock
+English | [中文](./README-zh.md)
 an easy redis-based distributed-lock implementation for hyperf 2.*。
 This extension features distributed-lock includes block and unblock distributed-lock.
 
