@@ -7,8 +7,10 @@ This extension features distributed-lock includes block and unblock distributed-
 ## Principle
 The command in `Redis` is atomic.so we use `set` to make sure that your application executes sequentially.
 The Redis version before 2.8 does't support the option `ex` in `set` command. so we just use `setnx+expire` instead.>> Version 1.*
-The Redis version before 2.8 supports the option `ex` in `set` command. so we use `set nx ex`>> Version 2.*
+The Redis version after 2.8 supports the option `ex` in `set` command. so we use `set nx ex`>> Version 2.*
 
+so version 2.* supports the version of redis after 2.8.
+version 1.* supports all the versions of redis.
 
 ## Redis version 
 `redis-server --version`

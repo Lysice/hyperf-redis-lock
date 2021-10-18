@@ -2,9 +2,11 @@
 一个简单的Redis分布式锁的实现 基于Hyperf框架。本扩展实现了基本的分布式锁，支持阻塞式分布式锁和非阻塞式分布式锁。
 
 ## 原理
-Redis的命令为原子性 使用Redis的set即可保证业务的串行执行。
-2.8之前版本的Redis不支持set 的ex选项 因此只能使用 setnx+expire的方式。 对应扩展1.0版本
-2.8之后版本的Redis可以直接使用 set 的nx+ex选项。对应扩展2.*版本
+`Redis`的命令为原子性 使用`Redis`的`set`即可保证业务的串行执行。
+`2.8`之前版本的`Redis`不支持`set` 的`ex`选项 因此只能使用 `setnx+expire`的方式。 对应扩展1.0版本.
+`2.8`之后版本的`Redis`可以直接使用 `set` 的`nx+ex`选项。对应扩展2.*版本
+
+因此 2.*版本只支持2.8版本以后的`Redis` 1.*版本支持所有版本的`Redis`.
 
 ## 确认你的Redis版本 如果你的Redis低于 2.8版本 则set 命令不支持 ex选项 因此你需要安装1.0版本。
 `redis-server --version`
@@ -31,7 +33,9 @@ Redis的命令为原子性 使用Redis的set即可保证业务的串行执行。
 ```
 public function lock(ResponseInterface $response)
     {
+        // 初始化RedisLock 参数:redis实例 锁名称 超时时间
         $lock = new RedisLock($this->redis, 'lock', 20);
+        // 非阻塞式获取锁
         $res = $lock->get(function () {
             sleep(10);
             return [123];
@@ -49,7 +53,9 @@ public function lock(ResponseInterface $response)
     public function lockA(ResponseInterface $response)
     {
         try {
+            // 初始化RedisLock 参数:redis实例 锁名称 超时时间
             $lock = new RedisLock($this->redis, 'lock', 4);
+            // 阻塞式
             $res = $lock->block(4, function () {
                 return [456];
             });
