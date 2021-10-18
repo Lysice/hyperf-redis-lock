@@ -1,5 +1,5 @@
 # hyperf-redis-lock
-English(./README.md) | [中文]
+[English](./README.md) | 中文
 
 一个简单的Redis分布式锁的实现 基于Hyperf框架。本扩展实现了基本的分布式锁，支持阻塞式分布式锁和非阻塞式分布式锁。
 
