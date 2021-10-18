@@ -87,12 +87,6 @@ abstract class Lock implements LockContract
         $starting = $this->currentTime();
         while(! $this->acquire()) {
            usleep(250 * 1000);
-           var_dump('try to get lock again...');
-           var_dump([
-               'seconds' => $seconds,
-               'cur' => $this->currentTime(),
-               'intval' => $this->currentTime() - $seconds
-           ]);
            if($this->currentTime() - $seconds >= $starting) {
                throw new LockTimeoutException();
            }
