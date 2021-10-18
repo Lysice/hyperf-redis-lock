@@ -55,10 +55,11 @@ abstract class Lock implements LockContract
 
     /**
      * Attempt to acquire the lock
-     * @param null $callback
+     * @param null|\Closure $callback
+     * @param null|\Closure $finally
      * @return bool|mixed
      */
-    public function get($callback = null)
+    public function get($callback = null, $finally = null)
     {
         $result = $this->acquire();
         if($result && is_callable($callback)) {
@@ -67,6 +68,9 @@ abstract class Lock implements LockContract
             } finally {
                 $this->release();
             }
+        }
+        if (!$result && is_callable($finally)) {
+            return $finally();
         }
 
         return $result;
