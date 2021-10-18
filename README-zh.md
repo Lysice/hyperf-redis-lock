@@ -43,6 +43,8 @@ public function lock(ResponseInterface $response)
         $res = $lock->get(function () {
             sleep(10);
             return [123];
+        }, function () {
+            return [456];
         });
         return $response->json($res);
     }
