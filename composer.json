@@ -42,7 +42,7 @@
     },
     "extra": {
         "hyperf": {
-            "config": "Hyperf\\Demo\\ConfigProvider"
+            "config": "Lysice\\HyperfRedisLock\\ConfigProvider"
         }
     }
 }
