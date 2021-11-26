@@ -1,8 +1,8 @@
 # hyperf-redis-lock
-[![Latest Stable Version](https://poser.pugx.org/Lysice/laravel-getui/v/stable)](https://packagist.org/packages/Lysice/laravel-getui)
-[![Total Downloads](https://poser.pugx.org/Lysice/laravel-getui/downloads)](https://packagist.org/packages/Lysice/laravel-getui)
-[![Latest Unstable Version](https://poser.pugx.org/Lysice/laravel-getui/v/unstable)](https://packagist.org/packages/Lysice/laravel-getui)
-[![License](https://poser.pugx.org/Lysice/laravel-getui/license)](https://packagist.org/packages/Lysice/laravel-getui)
+[![Latest Stable Version](https://poser.pugx.org/Lysice/hyperf-redis-lock/v/stable)](https://packagist.org/packages/Lysice/hyperf-redis-lock)
+[![Total Downloads](https://poser.pugx.org/Lysice/hyperf-redis-lock/downloads)](https://packagist.org/packages/Lysice/hyperf-redis-lock)
+[![Latest Unstable Version](https://poser.pugx.org/Lysice/hyperf-redis-lock/v/unstable)](https://packagist.org/packages/Lysice/hyperf-redis-lock)
+[![License](https://poser.pugx.org/Lysice/hyperf-redis-lock/license)](https://packagist.org/packages/Lysice/hyperf-redis-lock)
 [English](./README.md) | 中文
 
 一个简单的Redis分布式锁的实现 基于Hyperf框架。本扩展实现了基本的分布式锁，支持阻塞式分布式锁和非阻塞式分布式锁。
