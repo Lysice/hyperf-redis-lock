@@ -9,6 +9,9 @@ abstract class Lock implements LockContract
 {
     use InteractsWithTime;
 
+    const SHARE_LOCK_VALUE = 'lock_in_share_mode';
+    const SHARE_LOCK_OWNER_KEY_PREFIX = 'lock:share_lock_owner:';
+
     /**
      * The name of the lock
      * @var string
@@ -43,10 +46,21 @@ abstract class Lock implements LockContract
     abstract public function acquire();
 
     /**
+     * Attempt to acquire the share lock
+     * @return bool
+     */
+    abstract protected function acquireShareLock();
+
+    /**
      * Release the lock
      * @return void
      */
     abstract public function release();
+
+    /**
+     * @return void
+     */
+    abstract protected function releaseShareLock();
 
     /**
      * Returns the owner value written into the driver for this lock
@@ -94,6 +108,53 @@ abstract class Lock implements LockContract
         }
 
         if(is_callable($callback)) {
+            try {
+                return $callback();
+            } finally {
+                $this->release();
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @throws LockTimeoutException
+     */
+    public function readLock($seconds, $callback = null, $interval = 250000)
+    {
+        $starting = $this->currentTime();
+        while ($this->acquireShareLock() == 0) {
+            usleep($interval);
+            if ($this->currentTime() - $seconds >= $starting) {
+                throw new LockTimeoutException();
+            }
+        }
+        if (is_callable($callback)) {
+            try {
+                return $callback();
+            } finally {
+                $this->releaseShareLock();
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @throws LockTimeoutException
+     */
+    public function writeLock($seconds, $callback = null, $interval = 250000)
+    {
+        $starting = $this->currentTime();
+        while (!$this->acquire()) {
+            usleep($interval);
+            if ($this->currentTime() - $seconds >= $starting) {
+                throw new LockTimeoutException();
+            }
+        }
+
+        if (is_callable($callback)) {
             try {
                 return $callback();
             } finally {
