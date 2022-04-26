@@ -73,6 +73,26 @@ public function lock(ResponseInterface $response)
         }
     }
 ```
+- 读锁
+```
+/**
+     * @return \Psr\Http\Message\ResponseInterface
+     */
+    public function lockA(ResponseInterface $response)
+    {
+        try {
+            $lock = new RedisLock($this->redis, 'lock', 4);
+            $res = $lock->readLock(4, function () {
+                return [456];
+            }, 250000);
+            return $response->json(['res' => $res]);
+        // catch the exception
+        } catch (LockTimeoutException $exception) {
+            var_dump('lockA lock check timeout');
+            return $response->json(['res' => false, 'message' => 'timeout']);
+        }
+    }
+```
 
 
 ## 最后
