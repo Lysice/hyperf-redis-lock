@@ -35,6 +35,40 @@ class RedisLock extends Lock {
     }
 
     /**
+     * the key name of read lock and write lock
+     * @return string
+     */
+    protected function getReadWriteLockKey()
+    {
+        return 'readWriteLock:' . $this->name;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function acquireShareLock(): bool
+    {
+        $shareLockScript = LockScripts::shareLock();
+        $expireTime = $this->seconds > 0 ? $this->seconds : 30;
+
+        $result = $this->redis->eval($shareLockScript, [$this->getReadWriteLockKey(), self::LOCK_MODE_SHARE, $expireTime], 1);
+        return intval($result) === 1;
+    }
+
+    /**
+     * @inheritDoc
+     * @return bool
+     */
+    protected function acquireWriteLock(): bool
+    {
+        $lua = LockScripts::writeLock();
+        $expireTime = $this->seconds > 0 ? $this->seconds : 30;
+
+        $result = $this->redis->eval($lua, [$this->getReadWriteLockKey(), self::LOCK_MODE_WRITE, $this->owner, $expireTime], 1);
+        return intval($result) === 1;
+    }
+
+    /**
      * @inheritDoc
      */
     public function release()
@@ -42,6 +76,24 @@ class RedisLock extends Lock {
         if ($this->isOwnedByCurrentProcess()) {
             $this->redis->eval(LockScripts::releaseLock(), ['name' => $this->name, 'owner' => $this->owner],1);
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function releaseShareLock()
+    {
+        $lua = LockScripts::releaseShareLock();
+        $this->redis->eval($lua, [$this->getReadWriteLockKey(), self::LOCK_MODE_SHARE], 1);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function releaseWriteLock()
+    {
+        $lua = LockScripts::releaseWriteLock();
+        $this->redis->eval($lua, [$this->getReadWriteLockKey(), self::LOCK_MODE_WRITE, $this->owner], 1);
     }
 
     /**

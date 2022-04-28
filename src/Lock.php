@@ -9,6 +9,9 @@ abstract class Lock implements LockContract
 {
     use InteractsWithTime;
 
+    const LOCK_MODE_SHARE = 1;
+    const LOCK_MODE_WRITE = 2;
+
     /**
      * The name of the lock
      * @var string
@@ -43,10 +46,32 @@ abstract class Lock implements LockContract
     abstract public function acquire();
 
     /**
+     * Attempt to acquire the share lock
+     * @return bool
+     */
+    abstract protected function acquireShareLock();
+
+    /**
+     * Attempt to acquire the write lock
+     * @return bool
+     */
+    abstract protected function acquireWriteLock(): bool;
+
+    /**
      * Release the lock
      * @return void
      */
     abstract public function release();
+
+    /**
+     * @return void
+     */
+    abstract protected function releaseShareLock();
+
+    /**
+     * @return void
+     */
+    abstract protected function releaseWriteLock();
 
     /**
      * Returns the owner value written into the driver for this lock
@@ -98,6 +123,52 @@ abstract class Lock implements LockContract
                 return $callback();
             } finally {
                 $this->release();
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @throws LockTimeoutException
+     */
+    public function readLock($seconds, $callback = null, $interval = 250000)
+    {
+        $starting = $this->currentTime();
+        while ($this->acquireShareLock() == 0) {
+            usleep($interval);
+            if ($this->currentTime() - $seconds >= $starting) {
+                throw new LockTimeoutException();
+            }
+        }
+        if (is_callable($callback)) {
+            try {
+                return $callback();
+            } finally {
+                $this->releaseShareLock();
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @throws LockTimeoutException
+     */
+    public function writeLock($seconds, $callback = null, $interval = 250000)
+    {
+        $starting = $this->currentTime();
+        while ($this->acquireWriteLock() == 0) {
+            usleep($interval);
+            if ($this->currentTime() - $seconds >= $starting) {
+                throw new LockTimeoutException();
+            }
+        }
+        if (is_callable($callback)) {
+            try {
+                return $callback();
+            } finally {
+                $this->releaseWriteLock();
             }
         }
 
