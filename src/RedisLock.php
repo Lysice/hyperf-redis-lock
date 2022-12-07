@@ -40,8 +40,10 @@ class RedisLock extends Lock {
     public function release()
     {
         if ($this->isOwnedByCurrentProcess()) {
-            $this->redis->eval(LockScripts::releaseLock(), ['name' => $this->name, 'owner' => $this->owner],1);
+            $res = $this->redis->eval(LockScripts::releaseLock(), ['name' => $this->name, 'owner' => $this->owner],1);
+            return $res == 1;
         }
+        return false;
     }
 
     /**
@@ -57,6 +59,7 @@ class RedisLock extends Lock {
      */
     public function forceRelease()
     {
-        $this->redis->del($this->name);
+        $r = $this->redis->del($this->name);
+        return $r == 1;
     }
 }
