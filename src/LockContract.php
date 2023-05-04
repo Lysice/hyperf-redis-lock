@@ -19,6 +19,24 @@ interface LockContract {
     public function block($seconds, $callback = null);
 
     /**
+     * Attempt to acquire share lock  for given number of seconds, try every $interval microseconds
+     * @param $seconds
+     * @param null $callback
+     * @param int $interval
+     * @return mixed
+     */
+    public function readLock($seconds, $callback = null, $interval = 250000);
+
+    /**
+     * Attempt to acquire exclusive lock  for given number of seconds, try every $interval microseconds
+     * @param $seconds
+     * @param null $callback
+     * @param int $interval
+     * @return mixed
+     */
+    public function writeLock($seconds, $callback = null, $interval = 250000);
+
+    /**
      * Release the lock
      * @return mixed
      */
